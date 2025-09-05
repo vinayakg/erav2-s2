@@ -25,7 +25,17 @@ import pytesseract
 from PIL import Image
 import PyPDF2
 from docx import Document
+import pytesseract
+import os
 
+# Set tesseract path explicitly for Ubuntu/Linux
+pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
+
+# Verify tesseract is accessible
+if not os.path.exists('/usr/bin/tesseract'):
+    # Try alternative path
+    if os.path.exists('/usr/local/bin/tesseract'):
+        pytesseract.pytesseract.tesseract_cmd = '/usr/local/bin/tesseract'
 
 app = FastAPI(title="Animal Selector & File Upload API")
 

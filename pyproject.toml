@@ -13,6 +13,8 @@ dependencies = [
     "python-docx>=1.1.0",
 ]
 
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+[tool.setuptools]
+packages = []  # Don't treat any directories as packages
+
+[tool.setuptools.package-dir]
+# Empty - we're not building packages
