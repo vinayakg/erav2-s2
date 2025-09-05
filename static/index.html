@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animal Selector & File Upload</title>
+  <style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: #f5f5f5;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.input-section {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.box {
+  flex: 1;
+  min-width: 300px;
+  padding: 20px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.box h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #555;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.radio-item input[type="radio"] {
+  width: 18px;
+  height: 18px;
+}
+
+.radio-item label {
+  font-size: 16px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.file-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+input[type="file"] {
+  font-size: 16px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.upload-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.upload-button:hover {
+  background-color: #0056b3;
+}
+
+.upload-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.animal-display {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.animal-image {
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.results-section {
+  display: none;
+  margin-top: 30px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.result-box {
+  flex: 1;
+  min-width: 300px;
+  padding: 20px;
+  border: 2px solid #28a745;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.result-box h3 {
+  margin-top: 0;
+  color: #28a745;
+}
+
+.uploaded-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.api-response {
+  background-color: white;
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  white-space: pre-wrap;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.loading {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.error {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 15px;
+  border-radius: 6px;
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Animal Selector & File Upload</h1>
+    
+    <div class="input-section">
+      <div class="box">
+        <h3>Select an Animal</h3>
+        <div class="radio-group">
+          <div class="radio-item">
+            <input type="radio" id="cat" name="animal" value="cat">
+            <label for="cat">Cat</label>
+          </div>
+          <div class="radio-item">
+            <input type="radio" id="dog" name="animal" value="dog">
+            <label for="dog">Dog</label>
+          </div>
+          <div class="radio-item">
+            <input type="radio" id="elephant" name="animal" value="elephant">
+            <label for="elephant">Elephant</label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="box">
+        <h3>Upload a File</h3>
+        <div class="file-upload">
+          <input type="file" id="fileInput" accept="*/*">
+          <button class="upload-button" id="uploadButton" disabled>Upload File</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="animal-display" id="animalDisplay"></div>
+    
+    <div class="results-section" id="resultsSection">
+      <div class="result-box">
+        <h3>Uploaded File</h3>
+        <div id="uploadedFileDisplay"></div>
+      </div>
+      <div class="result-box">
+        <h3>Processing Results</h3>
+        <div id="apiResponse" class="api-response"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+// Animal image APIs
+const animalAPIs = {
+  cat: 'https://api.thecatapi.com/v1/images/search',
+  dog: 'https://api.thedogapi.com/v1/images/search',
+  elephant: 'https://elephant-api.herokuapp.com/elephants/random'
+};
+
+// DOM elements
+const animalRadios = document.querySelectorAll('input[name="animal"]');
+const animalDisplay = document.getElementById('animalDisplay');
+const fileInput = document.getElementById('fileInput');
+const uploadButton = document.getElementById('uploadButton');
+const resultsSection = document.getElementById('resultsSection');
+const uploadedFileDisplay = document.getElementById('uploadedFileDisplay');
+const apiResponse = document.getElementById('apiResponse');
+
+// Event listeners
+animalRadios.forEach(radio => {
+  radio.addEventListener('change', handleAnimalSelection);
+});
+
+fileInput.addEventListener('change', handleFileSelection);
+uploadButton.addEventListener('click', handleFileUpload);
+
+// Handle animal selection
+async function handleAnimalSelection(event) {
+  const selectedAnimal = event.target.value;
+  animalDisplay.innerHTML = '<div class="loading">Loading image...</div>';
+  
+  try {
+    let imageUrl;
+    
+    if (selectedAnimal === 'elephant') {
+      // Use a placeholder for elephants since there's no reliable free API
+      imageUrl = `https://picsum.photos/400/300?random=${Date.now()}`;
+    } else {
+      const response = await fetch(animalAPIs[selectedAnimal]);
+      const data = await response.json();
+      imageUrl = data[0].url;
+    }
+    
+    animalDisplay.innerHTML = `
+      <img src="${imageUrl}" alt="${selectedAnimal}" class="animal-image" 
+           onerror="this.src='https://picsum.photos/400/300?grayscale&random=${Date.now()}'">
+    `;
+  } catch (error) {
+    animalDisplay.innerHTML = `
+      <div class="error">Failed to load ${selectedAnimal} image. Using placeholder.</div>
+      <img src="https://picsum.photos/400/300?grayscale&random=${Date.now()}" 
+           alt="${selectedAnimal} placeholder" class="animal-image">
+    `;
+  }
+}
+
+// Handle file selection
+function handleFileSelection() {
+  uploadButton.disabled = !fileInput.files.length;
+}
+
+// Handle file upload
+async function handleFileUpload() {
+  const file = fileInput.files[0];
+  if (!file) return;
+  
+  // Clear previous results and animal selection
+  clearAll();
+  
+  // Show upload progress
+  resultsSection.style.display = 'flex';
+  apiResponse.textContent = 'Uploading and processing file...';
+  
+  // Display uploaded file preview
+  displayUploadedFile(file);
+  
+  // Create FormData and upload
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  try {
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok) {
+      displayApiResponse(result);
+    } else {
+      apiResponse.innerHTML = `<div class="error">Upload failed: ${result.message || 'Unknown error'}</div>`;
+    }
+  } catch (error) {
+    apiResponse.innerHTML = `<div class="error">Upload failed: ${error.message}</div>`;
+  }
+}
+
+// Display uploaded file preview
+function displayUploadedFile(file) {
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      uploadedFileDisplay.innerHTML = `
+        <img src="${e.target.result}" alt="Uploaded image" class="uploaded-image">
+        <p><strong>File:</strong> ${file.name}</p>
+        <p><strong>Size:</strong> ${formatFileSize(file.size)}</p>
+      `;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    uploadedFileDisplay.innerHTML = `
+      <div style="padding: 20px; background-color: #e9ecef; border-radius: 6px; text-align: center;">
+        <p><strong>📄 ${file.name}</strong></p>
+        <p>Size: ${formatFileSize(file.size)}</p>
+        <p>Type: ${file.type || 'Unknown'}</p>
+      </div>
+    `;
+  }
+}
+
+// Display API response in readable format
+function displayApiResponse(data) {
+  const formatText = (text) => {
+    if (!text || text.trim() === '') return 'No text found';
+    return text.length > 1000 ? text.substring(0, 1000) + '...\n\n[Text truncated - too long to display]' : text;
+  };
+  
+  const responseText = `Status: ${data.status}
+Message: ${data.message}
+
+File Details:
+• Name: ${data.filename}
+• Type: ${data.type}
+• Size: ${data.size}
+
+Extracted Text:
+${formatText(data.extracted_text)}`;
+  
+  apiResponse.textContent = responseText;
+}
+
+// Clear all selections and displays
+function clearAll() {
+  // Clear animal selection
+  animalRadios.forEach(radio => radio.checked = false);
+  animalDisplay.innerHTML = '';
+  
+  // Clear file input
+  fileInput.value = '';
+  uploadButton.disabled = true;
+  
+  // Hide results
+  resultsSection.style.display = 'none';
+  uploadedFileDisplay.innerHTML = '';
+  apiResponse.textContent = '';
+}
+
+// Format file size
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+  </script>
+</body>
+</html>

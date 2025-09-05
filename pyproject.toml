@@ -1,0 +1,46 @@
+[project]
+name = "animal-file-upload"
+version = "1.0.0"
+description = "Animal selector and file upload application with text extraction"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "python-multipart>=0.0.6",
+    "pillow>=10.0.0",
+    "pytesseract>=0.3.10",
+    "PyPDF2>=3.0.0",
+    "python-docx>=1.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "isort",
+    "flake8",
+    "pytest",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "pytest>=7.4.0",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[project.scripts]
+start = "uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+start-prod = "uvicorn main:app --host 0.0.0.0 --port 8000"
