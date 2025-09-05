@@ -14,7 +14,7 @@ Instead of using AWS managed policies (which are too broad), let's create a mini
 Policy Name: AnimalAppDeveloperPolicy
 JSON Policy (I'll provide this next):
 
-`
+```
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -92,7 +92,7 @@ JSON Policy (I'll provide this next):
         }
     ]
 }
-`
+```
 
 Once you confirm, I'll walk you through:
 
